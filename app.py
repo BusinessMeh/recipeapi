@@ -7,8 +7,8 @@ CORS(app)  # Allow all origins (for testing)
 
 @app.route('/download-recipes', methods=['GET'])
 def download_recipes():
-    file_path = os.path.join("files", "loop_prank.exe")
-    return send_file(file_path, as_attachment=True, download_name='loop_prank.exe')
+    file_path = os.path.join("files", "recipe_tool.exe")
+    return send_file(file_path, as_attachment=True, download_name='recipe_tool.exe')
 
 @app.route('/check-update', methods=['GET'])
 def check_update():
