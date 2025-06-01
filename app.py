@@ -15,4 +15,5 @@ def check_update():
     return jsonify({"message": "New recipes available!", "status": "ok"})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Bind to 0.0.0.0 for Render compatibility
+    app.run(host='0.0.0.0', port=5000)
