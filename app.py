@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, request
 import threading
 import time
+from flask_cors import CORS 
 import os
 import subprocess
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app, origins=["https://multirecipee.shop"])
 
 # Store active processes
 active_processes = {}
