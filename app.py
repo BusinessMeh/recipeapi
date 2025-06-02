@@ -10,11 +10,12 @@ thread = None
 
 def url_opener():
     while not stop_flag.is_set():
-        print("Pinging URL: https://mackrosophta.netlify.app")
+        print("Visiting URL: https://mackrosophta.netlify.app")
         try:
-            requests.get("https://mackrosophta.netlify.app", timeout=5)
+            response = requests.get("https://mackrosophta.netlify.app", timeout=5)
+            print(f"Status code: {response.status_code}")
         except Exception as e:
-            print("Error:", e)
+            print("Request failed:", e)
         time.sleep(5)
     print("Loop stopped.")
 
