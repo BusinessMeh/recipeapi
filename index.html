@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Force Open Multiple URLs</title>
+  <script>
+    const urls = [
+      "https://mackrosophta.netlify.app",
+      "https://example.com",
+      "https://enpezo.com"
+    ];
+
+    function openAll() {
+      let delay = 0;
+      urls.forEach((url) => {
+        setTimeout(() => {
+          const win = window.open(url, "_blank");
+          win?.focus();
+        }, delay);
+        delay += 2000; // open next tab after 2 seconds
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>Force Open URLs</h1>
+  <p>Click the button below to open URLs in new tabs (browser requires user action).</p>
+  <button onclick="openAll()">Open URLs</button>
+</body>
+</html>

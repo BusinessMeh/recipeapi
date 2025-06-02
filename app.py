@@ -1,33 +1,26 @@
 from flask import Flask
 import threading
 import time
-import requests
 
 app = Flask(__name__)
-stop_flag = False
+
+stop_flag = threading.Event()
 
 def url_opener():
-    global stop_flag
-    while not stop_flag:
-        try:
-            print("Pinging URL...")
-            requests.get("https://mackrosophta.netlify.app", timeout=5)
-        except Exception as e:
-            print(f"Error pinging URL: {e}")
+    while not stop_flag.is_set():
+        print("Pretending to open URL: https://mackrosophta.netlify.app")
         time.sleep(5)
+    print("Background thread stopped.")
 
 @app.route("/")
 def index():
-    return "URL pinger is running. Visit /stop to stop."
+    return "URL opener is running. Visit /stop to stop it."
 
 @app.route("/stop")
 def stop():
-    global stop_flag
-    stop_flag = True
-    return "Stopping URL pinger."
-
-# Start thread immediately when script is launched
-threading.Thread(target=url_opener, daemon=True).start()
+    stop_flag.set()
+    return "URL opener has been stopped."
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    threading.Thread(target=url_opener, daemon=True).start()
+    app.run()
