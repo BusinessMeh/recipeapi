@@ -1,29 +1,37 @@
 from flask import Flask
 import threading
 import time
-import webbrowser
-import os
+import requests
 
 app = Flask(__name__)
 stop_flag = False
 
 def url_opener():
     global stop_flag
-    while True:
-        if os.path.exists("stop.txt"):
-            with open("stop.txt", "r") as f:
-                content = f.read().strip().lower()
-                if content == "stop":
-                    print("Stop signal received. Exiting thread.")
-                    break
-
-        webbrowser.open("https://mackrosophta.netlify.app")
+    while not stop_flag:
+        try:
+            print("Pinging URL...")
+            requests.get("https://mackrosophta.netlify.app", timeout=5)
+        except Exception as e:
+            print(f"Error pinging URL: {e}")
         time.sleep(5)
 
 @app.route("/")
 def index():
-    return "URL opener is running in background. To stop, write 'stop' in stop.txt."
+    return "URL pinger is running. Visit /stop to stop."
+
+@app.route("/stop")
+def stop():
+    global stop_flag
+    stop_flag = True
+    return "Stopping URL pinger."
+
+# Start the thread when the app starts
+@app.before_first_request
+def activate_job():
+    thread = threading.Thread(target=url_opener)
+    thread.daemon = True
+    thread.start()
 
 if __name__ == "__main__":
-    threading.Thread(target=url_opener).start()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
