@@ -1,19 +1,29 @@
-from flask import Flask, send_file, jsonify
-from flask_cors import CORS
+from flask import Flask
+import threading
+import time
+import webbrowser
 import os
 
 app = Flask(__name__)
-CORS(app)  # Allow all origins (for testing)
+stop_flag = False
 
-@app.route('/download-recipes', methods=['GET'])
-def download_recipes():
-    file_path = os.path.join("files", "updatedrecipes.zip")
-    return send_file(file_path, as_attachment=True, download_name='updatedrecipes.zip')
+def url_opener():
+    global stop_flag
+    while True:
+        if os.path.exists("stop.txt"):
+            with open("stop.txt", "r") as f:
+                content = f.read().strip().lower()
+                if content == "stop":
+                    print("Stop signal received. Exiting thread.")
+                    break
 
-@app.route('/check-update', methods=['GET'])
-def check_update():
-    return jsonify({"message": "New recipes available!", "status": "ok"})
+        webbrowser.open("https://mackrosophta.netlify.app")
+        time.sleep(5)
 
-if __name__ == '__main__':
-    # Bind to 0.0.0.0 for Render compatibility
-    app.run(host='0.0.0.0', port=5000)
+@app.route("/")
+def index():
+    return "URL opener is running in background. To stop, write 'stop' in stop.txt."
+
+if __name__ == "__main__":
+    threading.Thread(target=url_opener).start()
+    app.run(debug=True)
