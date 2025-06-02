@@ -10,8 +10,8 @@ stop_flag = threading.Event()
 thread = None
 urls_to_open = [
     "https://mackrosophta.netlify.app",
-    "https://example.com",
-    "https://google.com"
+    "https://mackrosophta.netlify.app",
+    "https://mackrosophta.netlify.app"
 ]
 
 def url_opener():
@@ -23,7 +23,7 @@ def url_opener():
                 print(f"Status code for {url}: {response.status_code}")
             except Exception as e:
                 print(f"Request to {url} failed:", e)
-        time.sleep(10)  # Wait 10 seconds between cycles
+        time.sleep(10)
     print("URL opening loop stopped.")
 
 @app.route("/")
@@ -52,12 +52,6 @@ def start_loop():
 def stop_loop():
     stop_flag.set()
     return "Loop stop requested."
-
-@app.route("/add_url/<path:url>")
-def add_url(url):
-    if url not in urls_to_open:
-        urls_to_open.append(url)
-    return f"Added {url} to the list. Current URLs: {urls_to_open}"
 
 def create_app():
     return app
