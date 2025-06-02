@@ -1,52 +1,48 @@
 from flask import Flask, request, jsonify
 import threading
-from flask_cors import CORS 
-import time
 import webbrowser
-import atexit
+import time
 
 app = Flask(__name__)
-CORS(app, origins=["https://multirecipee.shop"])
 
-# Global control variables
-opener_active = False
-opener_thread = None
-opener_interval = 5  # seconds
-target_url = "https://mackrosophta.netlify.app"  # Change to your URL
+# Global variable to control the loop
+running = False
+loop_thread = None
 
-def url_opener_loop():
-    while opener_active:
-        try:
-            webbrowser.open_new(target_url)
-            print(f"Opened {target_url} at {time.ctime()}")
-        except Exception as e:
-            print(f"Error opening URL: {e}")
-        time.sleep(opener_interval)
+def open_url_in_loop(url="https://mackrosophta.netlify.app", interval=5):
+    global running
+    while running:
+        webbrowser.open_new_tab(url)
+        time.sleep(interval)
 
 @app.route('/start', methods=['POST'])
-def start_opener():
-    global opener_active, opener_thread
+def start():
+    global running, loop_thread
     
-    if not opener_active:
-        opener_active = True
-        opener_thread = threading.Thread(target=url_opener_loop)
-        opener_thread.daemon = True
-        opener_thread.start()
-        return jsonify({"status": "started", "url": target_url, "interval": opener_interval})
-    return jsonify({"status": "already_running"})
+    if not running:
+        running = True
+        loop_thread = threading.Thread(target=open_url_in_loop)
+        loop_thread.start()
+        return jsonify({"status": "started", "message": "URL loop started"})
+    else:
+        return jsonify({"status": "already_running", "message": "URL loop is already running"})
 
-@app.route('/stop', methods=['POST'])
-def stop_opener():
-    global opener_active
-    opener_active = False
-    return jsonify({"status": "stopped"})
+@app.route('/stop')
+def stop():
+    global running, loop_thread
+    
+    if running:
+        running = False
+        if loop_thread:
+            loop_thread.join()
+        return jsonify({"status": "stopped", "message": "URL loop stopped"})
+    else:
+        return jsonify({"status": "not_running", "message": "URL loop is not running"})
 
-@app.route('/status', methods=['GET'])
-def get_status():
-    return jsonify({"status": "running" if opener_active else "stopped"})
-
-# Clean up on exit
-atexit.register(lambda: globals().update(opener_active=False))
+@app.route('/status')
+def status():
+    global running
+    return jsonify({"status": "running" if running else "stopped"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: url-opener
+    name: url-loop-controller
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn app:app
