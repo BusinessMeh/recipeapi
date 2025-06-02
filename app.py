@@ -26,12 +26,8 @@ def stop():
     stop_flag = True
     return "Stopping URL pinger."
 
-# Start the thread when the app starts
-@app.before_first_request
-def activate_job():
-    thread = threading.Thread(target=url_opener)
-    thread.daemon = True
-    thread.start()
+# Start thread immediately when script is launched
+threading.Thread(target=url_opener, daemon=True).start()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
