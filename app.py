@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS 
 import webbrowser
 import threading
 import time
 
 app = Flask(__name__)
+CORS(app, origins=["https://multirecipee.shop"])
 
 # Global variable to control the loop
 running = False
