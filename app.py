@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 import threading
+from flask_cors import CORS 
 import time
 import webbrowser
 import atexit
 
 app = Flask(__name__)
+CORS(app, origins=["https://multirecipee.shop"])
 
 # Global control variables
 opener_active = False
