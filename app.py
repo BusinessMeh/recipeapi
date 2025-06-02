@@ -1,10 +1,16 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Add this import
 import threading
 import webbrowser
 import time
 
 app = Flask(__name__)
+CORS(app)  # This will enable CORS for all routes
 
+# Alternatively, to allow only specific origins:
+# CORS(app, resources={r"/*": {"origins": "https://multirecipee.shop"}})
+
+# ... rest of your existing code ...
 # Global variable to control the loop
 running = False
 loop_thread = None
