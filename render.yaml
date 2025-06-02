@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: url-loop-controller
-    runtime: python
-    buildCommand: |
-      pip install -r requirements.txt
-    startCommand: |
-      gunicorn app:app
