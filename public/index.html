@@ -1,97 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Keyword Lock</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full-Screen Keyword Lock</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container" id="lock-screen">
-    <h1>Enter Keyword</h1>
-    <input type="password" id="keyword-input" placeholder="Enter keyword">
-    <button onclick="checkKeyword()">Unlock</button>
-    <p id="message"></p>
+  <!-- Lock Screen -->
+  <div id="lock-screen" class="screen-container">
+    <div class="lock-form">
+      <h1>SYSTEM LOCKED</h1>
+      <div class="input-group">
+        <input type="password" id="keyword-input" placeholder="Enter unlock keyword">
+        <button id="unlock-btn">UNLOCK</button>
+      </div>
+      <p id="message" class="message"></p>
+    </div>
   </div>
 
-  <div class="container hidden" id="unlocked-screen">
-    <h1>Access Granted</h1>
-    <p>System locked. Press ESC + CTRL + X to exit</p>
+  <!-- Unlocked Screen (hidden initially) -->
+  <div id="unlocked-screen" class="screen-container hidden">
+    <div class="unlock-message">
+      <h1>SYSTEM UNLOCKED</h1>
+      <p>Press <span class="key-combo">ESC + CTRL + L</span> to re-lock</p>
+    </div>
   </div>
 
   <script>
-    let keysPressed = {};
-    let escapeSequence = ['Escape', 'Control', 'x'];
+    // DOM Elements
+    const lockScreen = document.getElementById('lock-screen');
+    const unlockedScreen = document.getElementById('unlocked-screen');
+    const keywordInput = document.getElementById('keyword-input');
+    const unlockBtn = document.getElementById('unlock-btn');
+    const messageEl = document.getElementById('message');
+
+    // Key sequence detection
+    const requiredSequence = ['Escape', 'Control', 'l'];
     let currentSequence = [];
+    let isLocked = true;
 
-    // Freeze all keyboard input
-    document.addEventListener('keydown', (e) => {
-      if (document.fullscreenElement) {
+    // Initialize fullscreen lock
+    function initFullscreenLock() {
+      // Prevent all keyboard input when locked
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keyup', handleKeyUp);
+      
+      // Prevent right-click
+      document.addEventListener('contextmenu', preventContextMenu);
+      
+      // Handle fullscreen changes
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      
+      // Focus the input field
+      keywordInput.focus();
+    }
+
+    // Keyboard handlers
+    function handleKeyDown(e) {
+      if (isLocked) {
         e.preventDefault();
-        keysPressed[e.key] = true;
+        e.stopPropagation();
+        
+        // Track key sequence for unlock
         currentSequence.push(e.key);
+        if (currentSequence.length > 3) currentSequence.shift();
         
-        // Keep only the last 3 keys pressed
-        if (currentSequence.length > 3) {
-          currentSequence.shift();
-        }
-        
-        // Check for escape sequence
-        if (currentSequence.length === 3 && 
-            currentSequence[0].toLowerCase() === 'escape' &&
-            currentSequence[1].toLowerCase() === 'control' &&
-            currentSequence[2].toLowerCase() === 'x') {
-          exitFullscreen();
+        // Check for unlock sequence
+        if (arraysEqual(currentSequence, requiredSequence)) {
+          lockSystem();
         }
       }
-    });
+    }
 
-    document.addEventListener('keyup', (e) => {
-      if (document.fullscreenElement) {
+    function handleKeyUp(e) {
+      if (isLocked) {
         e.preventDefault();
+        e.stopPropagation();
       }
-    });
+    }
 
-    async function checkKeyword() {
-      const keyword = document.getElementById('keyword-input').value;
-      const response = await fetch('/check-keyword', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyword })
-      });
+    function preventContextMenu(e) {
+      e.preventDefault();
+    }
+
+    function handleFullscreenChange() {
+      if (!document.fullscreenElement && !isLocked) {
+        lockSystem();
+      }
+    }
+
+    // Lock/unlock functions
+    async function unlockSystem() {
+      const keyword = keywordInput.value.trim();
       
-      const result = await response.json();
-      
-      if (result.success) {
-        document.getElementById('lock-screen').classList.add('hidden');
-        document.getElementById('unlocked-screen').classList.remove('hidden');
+      try {
+        const response = await fetch('/validate-keyword', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword })
+        });
         
-        try {
+        const result = await response.json();
+        
+        if (result.valid) {
+          isLocked = false;
+          lockScreen.classList.add('hidden');
+          unlockedScreen.classList.remove('hidden');
           await document.documentElement.requestFullscreen();
-          // Disable right-click menu
-          document.addEventListener('contextmenu', (e) => e.preventDefault());
-        } catch (e) {
-          console.error("Fullscreen error:", e);
+          messageEl.textContent = '';
+        } else {
+          messageEl.textContent = result.message;
+          keywordInput.value = '';
+          keywordInput.focus();
         }
-      } else {
-        document.getElementById('message').textContent = "Wrong keyword! Try again.";
+      } catch (error) {
+        messageEl.textContent = 'Connection error. Try again.';
       }
     }
 
-    function exitFullscreen() {
+    function lockSystem() {
+      isLocked = true;
       document.exitFullscreen();
-      document.getElementById('unlocked-screen').classList.add('hidden');
-      document.getElementById('lock-screen').classList.remove('hidden');
-      document.getElementById('keyword-input').value = '';
-      document.getElementById('message').textContent = '';
-      // Re-enable right-click
-      document.removeEventListener('contextmenu', (e) => e.preventDefault());
+      unlockedScreen.classList.add('hidden');
+      lockScreen.classList.remove('hidden');
+      keywordInput.value = '';
+      keywordInput.focus();
+      currentSequence = [];
     }
 
-    // Handle fullscreen change events
-    document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement) {
-        exitFullscreen();
-      }
+    // Helper function
+    function arraysEqual(a, b) {
+      return a.length === b.length && 
+             a.every((val, index) => val.toLowerCase() === b[index].toLowerCase());
+    }
+
+    // Event listeners
+    unlockBtn.addEventListener('click', unlockSystem);
+    keywordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') unlockSystem();
     });
+
+    // Initialize
+    initFullscreenLock();
   </script>
 </body>
 </html>

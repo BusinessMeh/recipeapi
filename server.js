@@ -6,16 +6,25 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-// Simple keyword check
-app.post('/check-keyword', (req, res) => {
+// Enhanced keyword validation
+const validKeywords = new Set([
+  'SECURELOCK123',
+  'FULLSCREENLOCK',
+  'RENDERLOCK2023'
+]);
+
+app.post('/validate-keyword', (req, res) => {
   const { keyword } = req.body;
-  const validKeywords = ['secret123', 'password', 'open'];
   
-  if (validKeywords.includes(keyword.toLowerCase())) {
-    res.json({ success: true });
-  } else {
-    res.json({ success: false });
+  if (!keyword) {
+    return res.status(400).json({ valid: false, message: 'Keyword required' });
   }
+  
+  const isValid = validKeywords.has(keyword.toUpperCase());
+  return res.json({ 
+    valid: isValid,
+    message: isValid ? 'Access granted' : 'Invalid keyword'
+  });
 });
 
 // Serve frontend
