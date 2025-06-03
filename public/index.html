@@ -8,9 +8,24 @@
 </head>
 <body>
   <!-- Lock Screen -->
- <!-- HTML -->
-<div id="content">Loading...</div>
+  <div id="lock-screen" class="screen-container">
+    <div class="lock-form">
+      <h1>SYSTEM LOCKED</h1>
+      <div class="input-group">
+        <input type="password" id="keyword-input" placeholder="Enter unlock keyword">
+        <button id="unlock-btn">UNLOCK</button>
+      </div>
+      <p id="message" class="message"></p>
+    </div>
+  </div>
 
+  <!-- Unlocked Screen (hidden initially) -->
+  <div id="unlocked-screen" class="screen-container hidden">
+    <div class="unlock-message">
+      <h1>SYSTEM UNLOCKED</h1>
+      <p>Press <span class="key-combo">ESC + CTRL + L</span> to re-lock</p>
+    </div>
+  </div>
 
   <script>
     // DOM Elements
