@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Keyword Lock</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" id="lock-screen">
+    <h1>Enter Keyword</h1>
+    <input type="password" id="keyword-input" placeholder="Enter keyword">
+    <button onclick="checkKeyword()">Unlock</button>
+    <p id="message"></p>
+  </div>
+
+  <div class="container hidden" id="unlocked-screen">
+    <h1>Access Granted</h1>
+    <p>You're now in fullscreen mode</p>
+    <button onclick="exitFullscreen()">Exit Fullscreen</button>
+  </div>
+
+  <script>
+    async function checkKeyword() {
+      const keyword = document.getElementById('keyword-input').value;
+      const response = await fetch('/check-keyword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        document.getElementById('lock-screen').classList.add('hidden');
+        document.getElementById('unlocked-screen').classList.remove('hidden');
+        document.documentElement.requestFullscreen().catch(e => {
+          console.log("Fullscreen error:", e);
+        });
+      } else {
+        document.getElementById('message').textContent = "Wrong keyword! Try again.";
+      }
+    }
+
+    function exitFullscreen() {
+      document.exitFullscreen();
+      document.getElementById('unlocked-screen').classList.add('hidden');
+      document.getElementById('lock-screen').classList.remove('hidden');
+      document.getElementById('keyword-input').value = '';
+      document.getElementById('message').textContent = '';
+    }
+  </script>
+</body>
+</html>
