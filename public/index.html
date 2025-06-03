@@ -14,11 +14,42 @@
 
   <div class="container hidden" id="unlocked-screen">
     <h1>Access Granted</h1>
-    <p>You're now in fullscreen mode</p>
-    <button onclick="exitFullscreen()">Exit Fullscreen</button>
+    <p>System locked. Press ESC + CTRL + X to exit</p>
   </div>
 
   <script>
+    let keysPressed = {};
+    let escapeSequence = ['Escape', 'Control', 'x'];
+    let currentSequence = [];
+
+    // Freeze all keyboard input
+    document.addEventListener('keydown', (e) => {
+      if (document.fullscreenElement) {
+        e.preventDefault();
+        keysPressed[e.key] = true;
+        currentSequence.push(e.key);
+        
+        // Keep only the last 3 keys pressed
+        if (currentSequence.length > 3) {
+          currentSequence.shift();
+        }
+        
+        // Check for escape sequence
+        if (currentSequence.length === 3 && 
+            currentSequence[0].toLowerCase() === 'escape' &&
+            currentSequence[1].toLowerCase() === 'control' &&
+            currentSequence[2].toLowerCase() === 'x') {
+          exitFullscreen();
+        }
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (document.fullscreenElement) {
+        e.preventDefault();
+      }
+    });
+
     async function checkKeyword() {
       const keyword = document.getElementById('keyword-input').value;
       const response = await fetch('/check-keyword', {
@@ -32,9 +63,14 @@
       if (result.success) {
         document.getElementById('lock-screen').classList.add('hidden');
         document.getElementById('unlocked-screen').classList.remove('hidden');
-        document.documentElement.requestFullscreen().catch(e => {
-          console.log("Fullscreen error:", e);
-        });
+        
+        try {
+          await document.documentElement.requestFullscreen();
+          // Disable right-click menu
+          document.addEventListener('contextmenu', (e) => e.preventDefault());
+        } catch (e) {
+          console.error("Fullscreen error:", e);
+        }
       } else {
         document.getElementById('message').textContent = "Wrong keyword! Try again.";
       }
@@ -46,7 +82,16 @@
       document.getElementById('lock-screen').classList.remove('hidden');
       document.getElementById('keyword-input').value = '';
       document.getElementById('message').textContent = '';
+      // Re-enable right-click
+      document.removeEventListener('contextmenu', (e) => e.preventDefault());
     }
+
+    // Handle fullscreen change events
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        exitFullscreen();
+      }
+    });
   </script>
 </body>
 </html>
