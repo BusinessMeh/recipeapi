@@ -11,23 +11,6 @@
  <!-- HTML -->
 <div id="content">Loading...</div>
 
-<script>
-function loadPageFromURL(url) {
-    fetch(url)
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('content').innerHTML = html;
-        })
-        .catch(error => {
-            document.getElementById('content').innerHTML = "Error loading content.";
-            console.error("Fetch error:", error);
-        });
-}
-
-// Call the function with your target page
-loadPageFromURL('https://www.youtube.com/shorts/AkWJ1OI3urc'); // Or full URL like 'https://example.com/page.html'
-</script>
-
 
   <script>
     // DOM Elements
